@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 imgtoibi = { git = "https://github.com/ingobeans/imgtoibi.git", version = "0.3.0" }
 macroquad = "0.4.15"
+image = "0.24.9"

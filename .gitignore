@@ -1,3 +1,4 @@
 /target
-filesystem/*
+filesystem/images/*
 !filesystem/images/.gitkeep
+!filesystem/images/cat.ibi
