@@ -1,5 +1,6 @@
 use image::EncodableLayout;
 use macroquad::prelude::*;
+use serde::{Deserialize, Serialize};
 
 use crate::util::*;
 
@@ -8,6 +9,7 @@ mod util;
 type Color16 = u16;
 
 #[allow(non_camel_case_types)]
+#[derive(Serialize, Deserialize, Debug)]
 enum FontSize {
     Font_7x10,
     Font_11x18,
@@ -23,6 +25,7 @@ impl FontSize {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
 enum UiItem {
     /// color
     Base(Color16),
@@ -45,8 +48,12 @@ fn u16_to_color(pixel: Color16) -> Color {
     Color::new(r as f32 / 256.0, g as f32 / 256.0, b as f32 / 256.0, 1.0)
 }
 
-struct Canvas {
+#[derive(Serialize, Deserialize, Debug)]
+struct CanvasData {
     items: Vec<UiItem>,
+}
+struct Canvas {
+    data: CanvasData,
     camera: Camera2D,
 }
 impl Canvas {
@@ -59,7 +66,10 @@ impl Canvas {
             target: Vec2::new(480.0 / 2.0, 320.0 / 2.0),
             ..Default::default()
         };
-        Self { items, camera }
+        Self {
+            data: CanvasData { items },
+            camera,
+        }
     }
     fn render(&self) {
         set_camera(&self.camera);
@@ -67,7 +77,7 @@ impl Canvas {
         draw_rectangle(0.0, 0.0, 480.0, 320.0, WHITE);
         gl_use_default_material();
 
-        for item in self.items.iter() {
+        for item in self.data.items.iter() {
             match item {
                 UiItem::Base(color) => {
                     draw_rectangle(0.0, 0.0, 480.0, 320.0, u16_to_color(*color));
@@ -140,6 +150,8 @@ async fn main() {
         UiItem::Rect(480 - 52, 0, 52, 320, 0x6529),
         UiItem::Text(0, 0, "wahoo".to_string(), FontSize::Font_16x26, 0xffff),
     ]);
+    let string = serde_json::to_string(&canvas.data).unwrap();
+    println!("{}", string);
 
     loop {
         canvas.render();

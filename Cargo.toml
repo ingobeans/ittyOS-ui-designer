@@ -1,9 +1,11 @@
 [package]
 name = "ittyOS-ui-designer"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2024"
 
 [dependencies]
 imgtoibi = { git = "https://github.com/ingobeans/imgtoibi.git", version = "0.3.0" }
 macroquad = "0.4.15"
 image = "0.24.9"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.150"
