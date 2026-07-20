@@ -91,21 +91,22 @@ impl Canvas {
                         u16_to_color(*color),
                     );
                 }
+                #[allow(unused)]
                 UiItem::Img(x, y, path) | UiItem::ImgEx(x, y, path, ..) => {
                     let mut crop_x = None;
                     let mut crop_y = None;
                     let mut crop_width = None;
                     let mut crop_height = None;
 
-                    match item {
-                        UiItem::ImgEx(x, y, path, _crop_x, _crop_y, _crop_width, _crop_height) => {
-                            crop_x = Some(*_crop_x);
-                            crop_y = Some(*_crop_x);
-                            crop_width = Some(*_crop_x);
-                            crop_height = Some(*_crop_x);
-                        }
-                        _ => {}
+                    if let UiItem::ImgEx(x, y, path, _crop_x, _crop_y, _crop_width, _crop_height) =
+                        item
+                    {
+                        crop_x = Some(*_crop_x);
+                        crop_y = Some(*_crop_x);
+                        crop_width = Some(*_crop_x);
+                        crop_height = Some(*_crop_x);
                     }
+
                     let buffer = imgtoibi::ibi_to_rgb(
                         &std::fs::read("filesystem/".to_string() + path).unwrap(),
                     );
@@ -143,7 +144,7 @@ impl Canvas {
 #[macroquad::main("ittyOS ui designer")]
 async fn main() {
     println!("ittyOS ui designer v{}", env!("CARGO_PKG_VERSION"));
-    let mut canvas = Canvas::new(vec![
+    let canvas = Canvas::new(vec![
         //UiItem::Base(0),
         UiItem::Img(0, 0, "images/cat.ibi".to_string()),
         UiItem::Rect(0, 0, 52, 320, 0x6529),
