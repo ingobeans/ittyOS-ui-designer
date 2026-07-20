@@ -1,3 +1,5 @@
+use std::sync::LazyLock;
+
 use macroquad::prelude::*;
 
 const DEFAULT_VERTEX: &str = r#"#version 100
@@ -18,7 +20,7 @@ void main() {
 
 const GRID_FRAGMENT: &str = include_str!("grid.frag");
 
-pub fn get_grid_material() -> Material {
+pub static GRID_MATERIAL: LazyLock<Material> = LazyLock::new(|| {
     load_material(
         ShaderSource::Glsl {
             vertex: DEFAULT_VERTEX,
@@ -27,4 +29,4 @@ pub fn get_grid_material() -> Material {
         MaterialParams::default(),
     )
     .unwrap()
-}
+});

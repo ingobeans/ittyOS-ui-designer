@@ -1,7 +1,7 @@
 use image::EncodableLayout;
 use macroquad::prelude::*;
 
-use crate::util::get_grid_material;
+use crate::util::*;
 
 mod util;
 
@@ -45,10 +45,74 @@ fn u16_to_color(pixel: Color16) -> Color {
     Color::new(r as f32 / 256.0, g as f32 / 256.0, b as f32 / 256.0, 1.0)
 }
 
+fn render_canvas(canvas: &[UiItem]) {
+    gl_use_material(&GRID_MATERIAL);
+    draw_rectangle(0.0, 0.0, 480.0, 320.0, WHITE);
+    gl_use_default_material();
+
+    for item in canvas.iter() {
+        match item {
+            UiItem::Base(color) => {
+                draw_rectangle(0.0, 0.0, 480.0, 320.0, u16_to_color(*color));
+            }
+            UiItem::Rect(x, y, width, height, color) => {
+                draw_rectangle(
+                    *x as f32,
+                    *y as f32,
+                    *width as f32,
+                    *height as f32,
+                    u16_to_color(*color),
+                );
+            }
+            UiItem::Img(x, y, path) | UiItem::ImgEx(x, y, path, ..) => {
+                let mut crop_x = None;
+                let mut crop_y = None;
+                let mut crop_width = None;
+                let mut crop_height = None;
+
+                match item {
+                    UiItem::ImgEx(x, y, path, _crop_x, _crop_y, _crop_width, _crop_height) => {
+                        crop_x = Some(*_crop_x);
+                        crop_y = Some(*_crop_x);
+                        crop_width = Some(*_crop_x);
+                        crop_height = Some(*_crop_x);
+                    }
+                    _ => {}
+                }
+                let buffer =
+                    imgtoibi::ibi_to_rgb(&std::fs::read("filesystem/".to_string() + path).unwrap());
+                let w = buffer.width();
+                let h = buffer.height();
+                let bytes = buffer.as_bytes().to_vec();
+                let mut new = Vec::new();
+                for b in bytes.chunks(3) {
+                    new.extend_from_slice(b);
+                    new.push(255);
+                }
+                let image = Image {
+                    width: w as u16,
+                    height: h as u16,
+                    bytes: new,
+                };
+                let texture = Texture2D::from_image(&image);
+                draw_texture(&texture, *x as f32, *y as f32, WHITE);
+            }
+            UiItem::Text(x, y, text, font, color) => {
+                draw_text(
+                    text,
+                    *x as f32,
+                    *y as f32 + font.get_preview_size() / 2.0,
+                    font.get_preview_size(),
+                    u16_to_color(*color),
+                );
+            }
+        }
+    }
+}
+
 #[macroquad::main("ittyOS ui designer")]
 async fn main() {
     println!("ittyOS ui designer v{}", env!("CARGO_PKG_VERSION"));
-    let grid_material = get_grid_material();
     let mut ui = vec![
         //UiItem::Base(0),
         UiItem::Img(0, 0, "images/cat.ibi".to_string()),
@@ -57,69 +121,7 @@ async fn main() {
         UiItem::Text(0, 0, "wahoo".to_string(), FontSize::Font_16x26, 0xffff),
     ];
     loop {
-        gl_use_material(&grid_material);
-        draw_rectangle(0.0, 0.0, 480.0, 320.0, WHITE);
-        gl_use_default_material();
-
-        for item in ui.iter() {
-            match item {
-                UiItem::Base(color) => {
-                    draw_rectangle(0.0, 0.0, 480.0, 320.0, u16_to_color(*color));
-                }
-                UiItem::Rect(x, y, width, height, color) => {
-                    draw_rectangle(
-                        *x as f32,
-                        *y as f32,
-                        *width as f32,
-                        *height as f32,
-                        u16_to_color(*color),
-                    );
-                }
-                UiItem::Img(x, y, path) | UiItem::ImgEx(x, y, path, ..) => {
-                    let mut crop_x = None;
-                    let mut crop_y = None;
-                    let mut crop_width = None;
-                    let mut crop_height = None;
-
-                    match item {
-                        UiItem::ImgEx(x, y, path, _crop_x, _crop_y, _crop_width, _crop_height) => {
-                            crop_x = Some(*_crop_x);
-                            crop_y = Some(*_crop_x);
-                            crop_width = Some(*_crop_x);
-                            crop_height = Some(*_crop_x);
-                        }
-                        _ => {}
-                    }
-                    let buffer = imgtoibi::ibi_to_rgb(
-                        &std::fs::read("filesystem/".to_string() + path).unwrap(),
-                    );
-                    let w = buffer.width();
-                    let h = buffer.height();
-                    let bytes = buffer.as_bytes().to_vec();
-                    let mut new = Vec::new();
-                    for b in bytes.chunks(3) {
-                        new.extend_from_slice(b);
-                        new.push(255);
-                    }
-                    let image = Image {
-                        width: w as u16,
-                        height: h as u16,
-                        bytes: new,
-                    };
-                    let texture = Texture2D::from_image(&image);
-                    draw_texture(&texture, *x as f32, *y as f32, WHITE);
-                }
-                UiItem::Text(x, y, text, font, color) => {
-                    draw_text(
-                        text,
-                        *x as f32,
-                        *y as f32 + font.get_preview_size() / 2.0,
-                        font.get_preview_size(),
-                        u16_to_color(*color),
-                    );
-                }
-            }
-        }
+        render_canvas(&ui);
         next_frame().await;
     }
 }
