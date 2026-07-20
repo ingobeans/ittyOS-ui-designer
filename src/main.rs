@@ -3,13 +3,29 @@ use macroquad::prelude::*;
 
 type Color16 = u16;
 
+#[allow(non_camel_case_types)]
+enum FontSize {
+    Font_7x10,
+    Font_11x18,
+    Font_16x26,
+}
+impl FontSize {
+    fn get_preview_size(&self) -> f32 {
+        match self {
+            FontSize::Font_7x10 => 7.0,
+            FontSize::Font_11x18 => 18.0,
+            FontSize::Font_16x26 => 26.0,
+        }
+    }
+}
+
 enum UiItem {
     /// color
     Base(Color16),
     /// x, y, width, height, color
     Rect(u16, u16, u16, u16, Color16),
-    /// x, y, text, color
-    Text(u16, u16, String, Color16),
+    /// x, y, text, size, font, color
+    Text(u16, u16, String, FontSize, Color16),
     /// x, y, path
     Img(u16, u16, String),
     /// x, y, path, cropx, cropy, crop width, crop height
@@ -33,7 +49,7 @@ async fn main() {
         UiItem::Img(0, 0, "images/cat.ibi".to_string()),
         UiItem::Rect(0, 0, 52, 320, 0x6529),
         UiItem::Rect(480 - 52, 0, 52, 320, 0x6529),
-        UiItem::Text(0, 0, "wahoo".to_string(), 1),
+        UiItem::Text(0, 0, "wahoo".to_string(), FontSize::Font_16x26, 0xffff),
     ];
     loop {
         draw_rectangle(0.0, 0.0, 480.0, 320.0, WHITE);
@@ -86,7 +102,15 @@ async fn main() {
                     let texture = Texture2D::from_image(&image);
                     draw_texture(&texture, *x as f32, *y as f32, WHITE);
                 }
-                _ => {}
+                UiItem::Text(x, y, text, font, color) => {
+                    draw_text(
+                        text,
+                        *x as f32,
+                        *y as f32 + font.get_preview_size() / 2.0,
+                        font.get_preview_size(),
+                        u16_to_color(*color),
+                    );
+                }
             }
         }
         next_frame().await;
