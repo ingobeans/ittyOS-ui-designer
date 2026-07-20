@@ -262,7 +262,7 @@ dependencies = [
 
 [[package]]
 name = "ittyOS-ui-designer"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "image 0.24.9",
  "imgtoibi",

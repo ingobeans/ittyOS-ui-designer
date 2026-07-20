@@ -47,9 +47,18 @@ fn u16_to_color(pixel: Color16) -> Color {
 
 struct Canvas {
     items: Vec<UiItem>,
+    camera: Camera2D,
 }
 impl Canvas {
+    fn new(items: Vec<UiItem>) -> Self {
+        let camera = Camera2D {
+            render_target: Some(render_target(480, 320)),
+            ..Default::default()
+        };
+        Self { items, camera }
+    }
     fn render(&self) {
+        set_camera(&self.camera);
         gl_use_material(&GRID_MATERIAL);
         draw_rectangle(0.0, 0.0, 480.0, 320.0, WHITE);
         gl_use_default_material();
@@ -113,21 +122,20 @@ impl Canvas {
                 }
             }
         }
+        set_default_camera();
     }
 }
 
 #[macroquad::main("ittyOS ui designer")]
 async fn main() {
     println!("ittyOS ui designer v{}", env!("CARGO_PKG_VERSION"));
-    let mut canvas = Canvas {
-        items: vec![
-            //UiItem::Base(0),
-            UiItem::Img(0, 0, "images/cat.ibi".to_string()),
-            UiItem::Rect(0, 0, 52, 320, 0x6529),
-            UiItem::Rect(480 - 52, 0, 52, 320, 0x6529),
-            UiItem::Text(0, 0, "wahoo".to_string(), FontSize::Font_16x26, 0xffff),
-        ],
-    };
+    let mut canvas = Canvas::new(vec![
+        //UiItem::Base(0),
+        UiItem::Img(0, 0, "images/cat.ibi".to_string()),
+        UiItem::Rect(0, 0, 52, 320, 0x6529),
+        UiItem::Rect(480 - 52, 0, 52, 320, 0x6529),
+        UiItem::Text(0, 0, "wahoo".to_string(), FontSize::Font_16x26, 0xffff),
+    ]);
 
     loop {
         canvas.render();
