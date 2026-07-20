@@ -1,5 +1,9 @@
-use image::{DynamicImage, EncodableLayout, ImageBuffer};
+use image::EncodableLayout;
 use macroquad::prelude::*;
+
+use crate::util::get_grid_material;
+
+mod util;
 
 type Color16 = u16;
 
@@ -44,15 +48,18 @@ fn u16_to_color(pixel: Color16) -> Color {
 #[macroquad::main("ittyOS ui designer")]
 async fn main() {
     println!("ittyOS ui designer v{}", env!("CARGO_PKG_VERSION"));
+    let grid_material = get_grid_material();
     let mut ui = vec![
-        UiItem::Base(0),
+        //UiItem::Base(0),
         UiItem::Img(0, 0, "images/cat.ibi".to_string()),
         UiItem::Rect(0, 0, 52, 320, 0x6529),
         UiItem::Rect(480 - 52, 0, 52, 320, 0x6529),
         UiItem::Text(0, 0, "wahoo".to_string(), FontSize::Font_16x26, 0xffff),
     ];
     loop {
+        gl_use_material(&grid_material);
         draw_rectangle(0.0, 0.0, 480.0, 320.0, WHITE);
+        gl_use_default_material();
 
         for item in ui.iter() {
             match item {
