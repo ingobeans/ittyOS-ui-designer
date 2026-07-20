@@ -51,8 +51,12 @@ struct Canvas {
 }
 impl Canvas {
     fn new(items: Vec<UiItem>) -> Self {
+        let render_target = render_target(480, 320);
+        render_target.texture.set_filter(FilterMode::Nearest);
         let camera = Camera2D {
-            render_target: Some(render_target(480, 320)),
+            render_target: Some(render_target),
+            zoom: Vec2::new(1.0 / 480.0 * 2.0, 1.0 / 320.0 * 2.0),
+            target: Vec2::new(480.0 / 2.0, 320.0 / 2.0),
             ..Default::default()
         };
         Self { items, camera }
@@ -139,6 +143,12 @@ async fn main() {
 
     loop {
         canvas.render();
+        draw_texture(
+            &canvas.camera.render_target.as_ref().unwrap().texture,
+            0.0,
+            0.0,
+            WHITE,
+        );
         next_frame().await;
     }
 }
