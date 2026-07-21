@@ -2,3 +2,4 @@
 filesystem/images/*
 !filesystem/images/.gitkeep
 !filesystem/images/cat.ibi
+test.h
