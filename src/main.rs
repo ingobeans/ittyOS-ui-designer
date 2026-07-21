@@ -195,14 +195,15 @@ async fn main() {
     );
     println!("ittyOS ui designer v{}", env!("CARGO_PKG_VERSION"));
 
-    let (tx, rx) = mpsc::channel::<notify::Result<Event>>();
-
-    let path = "test.c".to_string();
-
+    let Some(path) = std::env::args().nth(1) else {
+        println!("no path given. usage: `ittyOS-ui-designer <file>`");
+        return;
+    };
     let mut canvas =
         Canvas::from_data(parse_canvas_data(&std::fs::read_to_string(&path).unwrap()).unwrap());
     canvas.data.write_to_file(&path);
 
+    let (tx, rx) = mpsc::channel::<notify::Result<Event>>();
     let mut watcher = notify::recommended_watcher(tx).unwrap();
     watcher
         .watch(Path::new(&path), RecursiveMode::Recursive)
@@ -218,7 +219,6 @@ async fn main() {
                     }
                 }
             }
-            println!("{r:?}");
         }
         canvas.render();
         draw_texture(
