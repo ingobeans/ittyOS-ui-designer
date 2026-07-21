@@ -169,21 +169,24 @@ async fn main() {
 
     let (tx, rx) = mpsc::channel::<notify::Result<Event>>();
 
-    let mut watcher = notify::recommended_watcher(tx).unwrap();
-    watcher
-        .watch(Path::new("test.c"), RecursiveMode::Recursive)
-        .unwrap();
+    let path = "test.c".to_string();
 
     let mut canvas =
-        Canvas::from_data(parse_canvas_data(&std::fs::read_to_string("test.c").unwrap()).unwrap());
-    let string = serde_json::to_string(&canvas.data).unwrap();
+        Canvas::from_data(parse_canvas_data(&std::fs::read_to_string(&path).unwrap()).unwrap());
+    let string = serde_json::to_string_pretty(&canvas.data).unwrap();
+
     println!("{}", string);
+
+    let mut watcher = notify::recommended_watcher(tx).unwrap();
+    watcher
+        .watch(Path::new(&path), RecursiveMode::Recursive)
+        .unwrap();
 
     loop {
         if let Ok(Ok(r)) = rx.try_recv() {
             while let Ok(_) = rx.try_recv() {}
             if let EventKind::Access(AccessKind::Close(_)) = r.kind {
-                if let Ok(text) = std::fs::read_to_string("test.c") {
+                if let Ok(text) = std::fs::read_to_string(&path) {
                     if let Some(data) = parse_canvas_data(&text) {
                         canvas.data = data;
                     }
