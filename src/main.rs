@@ -1,5 +1,8 @@
+use std::{path::Path, sync::mpsc};
+
 use image::EncodableLayout;
-use macroquad::prelude::*;
+use macroquad::{miniquad::window::set_window_size, prelude::*};
+use notify::{Event, EventKind, RecursiveMode, Watcher, event::AccessKind};
 use serde::{Deserialize, Serialize};
 
 use crate::util::*;
@@ -57,7 +60,11 @@ struct Canvas {
     camera: Camera2D,
 }
 impl Canvas {
-    fn new(items: Vec<UiItem>) -> Self {
+    #[allow(unused)]
+    fn from_items(items: Vec<UiItem>) -> Self {
+        Self::from_data(CanvasData { items })
+    }
+    fn from_data(data: CanvasData) -> Self {
         let render_target = render_target(480, 320);
         render_target.texture.set_filter(FilterMode::Nearest);
         let camera = Camera2D {
@@ -66,10 +73,7 @@ impl Canvas {
             target: Vec2::new(480.0 / 2.0, 320.0 / 2.0),
             ..Default::default()
         };
-        Self {
-            data: CanvasData { items },
-            camera,
-        }
+        Self { data, camera }
     }
     fn render(&self) {
         set_camera(&self.camera);
@@ -114,6 +118,8 @@ impl Canvas {
                     let h = buffer.height();
                     let bytes = buffer.as_bytes().to_vec();
                     let mut new = Vec::new();
+
+                    // add alpha channel
                     for b in bytes.chunks(3) {
                         new.extend_from_slice(b);
                         new.push(255);
@@ -141,20 +147,50 @@ impl Canvas {
     }
 }
 
-#[macroquad::main("ittyOS ui designer")]
+fn parse_canvas_data(text: &str) -> Option<CanvasData> {
+    serde_json::from_str(text).ok()
+}
+
+fn window_conf() -> Conf {
+    Conf {
+        window_title: "ittyOS ui designer".to_string(),
+        window_width: 480,
+        window_height: 320,
+        ..Default::default()
+    }
+}
+#[macroquad::main(window_conf)]
 async fn main() {
+    set_window_size(
+        (480.0 * screen_dpi_scale()) as _,
+        (320.0 * screen_dpi_scale()) as _,
+    );
     println!("ittyOS ui designer v{}", env!("CARGO_PKG_VERSION"));
-    let canvas = Canvas::new(vec![
-        //UiItem::Base(0),
-        UiItem::Img(0, 0, "images/cat.ibi".to_string()),
-        UiItem::Rect(0, 0, 52, 320, 0x6529),
-        UiItem::Rect(480 - 52, 0, 52, 320, 0x6529),
-        UiItem::Text(0, 0, "wahoo".to_string(), FontSize::Font_16x26, 0xffff),
-    ]);
+
+    let (tx, rx) = mpsc::channel::<notify::Result<Event>>();
+
+    let mut watcher = notify::recommended_watcher(tx).unwrap();
+    watcher
+        .watch(Path::new("test.c"), RecursiveMode::Recursive)
+        .unwrap();
+
+    let mut canvas =
+        Canvas::from_data(parse_canvas_data(&std::fs::read_to_string("test.c").unwrap()).unwrap());
     let string = serde_json::to_string(&canvas.data).unwrap();
     println!("{}", string);
 
     loop {
+        if let Ok(Ok(r)) = rx.try_recv() {
+            while let Ok(_) = rx.try_recv() {}
+            if let EventKind::Access(AccessKind::Close(_)) = r.kind {
+                if let Ok(text) = std::fs::read_to_string("test.c") {
+                    if let Some(data) = parse_canvas_data(&text) {
+                        canvas.data = data;
+                    }
+                }
+            }
+            println!("{r:?}");
+        }
         canvas.render();
         draw_texture(
             &canvas.camera.render_target.as_ref().unwrap().texture,
