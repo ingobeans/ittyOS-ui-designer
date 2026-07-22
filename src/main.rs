@@ -195,18 +195,18 @@ return res;
                     };
                     let text = format!(
                         "int currentY = i*HOR_LEN+O;
-                    if (currentY >= {y}) {{
-                        res = f_lseek(&{name}Img{index}, (currentY-{y})*width*2);
-                        if (res != FR_OK) {{
-                            print(\"f_seek failed with code: %d\\r\\n\", res);
-                        }}
-                        res = f_read(&{name}Img{index},
-                                    &disp_buf[(currentY-{y})*480*2+{x}*2],
-                                    {width}*2, 0);
-                        if (res != FR_OK) {{
-                            print(\"f_read failed with code: %d\\r\\n\", res);
-                        }}
-                    }}"
+if (currentY >= {y}) {{
+  res = f_lseek(&{name}Img{index}, (currentY-{y})*width*2);
+  if (res != FR_OK) {{
+    print(\"f_seek failed with code: %d\\r\\n\", res);
+  }}
+  res = f_read(&{name}Img{index},
+        &disp_buf[(currentY-{y})*480*2+{x}*2],
+        {width}*2, 0);
+  if (res != FR_OK) {{
+    print(\"f_read failed with code: %d\\r\\n\", res);
+  }}
+}}"
                     );
                     insert_chunk_code(&mut multi_chunk_code, bounds, &text, true);
                 }
@@ -309,12 +309,12 @@ return res;
         }
 
         if imgs > 0 {
-            new += "initSPI(SD_LCD_SPEED);\n";
+            new += "initSPI(SD_LCD_SPEED);";
         }
         new += "
-  ST7789_Select();
-  ST7789_WriteData(FILE_STREAM_BUF, streamBytesAmt);
-  ST7789_UnSelect();\n";
+ST7789_Select();
+ST7789_WriteData(FILE_STREAM_BUF, streamBytesAmt);
+ST7789_UnSelect();\n";
         new += "}\n";
         new += &format!(
             "
