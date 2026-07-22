@@ -76,7 +76,10 @@ fn get_chunks_of_rect(y: u16, height: u16) -> Vec<usize> {
 struct CanvasData {
     items: Vec<UiItem>,
 }
-
+struct Chunk {
+    base: String,
+    per_pixel: String,
+}
 struct Canvas {
     data: CanvasData,
     camera: Camera2D,
@@ -108,25 +111,34 @@ impl Canvas {
     }
     fn generate_code(&self) -> String {
         let mut new = String::new();
-        let mut chunks: [String; CHUNKS_AMT] = std::array::from_fn(|_| String::new());
+        let mut chunks: [Chunk; CHUNKS_AMT] = std::array::from_fn(|_| Chunk {
+            base: String::new(),
+            per_pixel: String::new(),
+        });
 
         for item in &self.data.items {
             match item {
                 UiItem::Rect(x, y, w, h, color) => {
                     let c = get_chunks_of_rect(*y, *h);
                     for chunk_index in c {
-                        chunks[chunk_index] += &format!(
-                            "for (int o=0; o<{};o++) {{\n",
-                            (*y + *h - chunk_index as u16 * HOR_LEN as u16).min(40)
-                        );
+                        let last = *y + *h - chunk_index as u16 * HOR_LEN as u16;
+                        let is_last = last < 40;
+                        let last = last.min(40);
+                        if is_last {
+                            chunks[chunk_index].per_pixel += &format!("if (o<{}) {{\n", last);
+                        }
                         let memset = if is_color_same_bytes(*color) {
                             "memset"
                         } else {
                             "memset_u16"
                         };
-                        chunks[chunk_index] +=
+                        chunks[chunk_index].per_pixel +=
                             &format!("{memset}(&disp_buf[o*480*2+{x}*2],0x{color:04x},{w}*2);\n");
-                        chunks[chunk_index] += "}\n";
+                        if is_last {
+                            chunks[chunk_index].per_pixel +=
+                                &format!("for (int o=0; o<{};o++) {{\n", last);
+                            chunks[chunk_index].per_pixel += "}\n";
+                        }
                     }
                 }
                 UiItem::Base(color) => {
@@ -145,7 +157,12 @@ impl Canvas {
         for (i, chunk) in chunks.into_iter().enumerate() {
             new += &format!("// chunk {i}\n");
             new += &format!("if (i == {i}) {{\n");
-            new += &chunk;
+            new += &chunk.base;
+            if !chunk.per_pixel.is_empty() {
+                new += "for (int o = 0; o<40; o++) {\n";
+                new += &chunk.per_pixel;
+                new += "}\n";
+            }
             new += &format!("}}\n");
         }
         new
