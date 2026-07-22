@@ -38,58 +38,74 @@
 */
 
 // chunk 0
+if (i == 0) {
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
 }
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
+}
 }
 // chunk 1
+if (i == 1) {
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
 }
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
+}
 }
 // chunk 2
+if (i == 2) {
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
 }
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
+}
 }
 // chunk 3
+if (i == 3) {
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
 }
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
+}
 }
 // chunk 4
+if (i == 4) {
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
 }
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
+}
 }
 // chunk 5
+if (i == 5) {
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
 }
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
+}
 }
 // chunk 6
+if (i == 6) {
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
 }
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
+}
 }
 // chunk 7
+if (i == 7) {
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
 }
 for (int o=0; o<40;o++) {
 memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
+}
 }

@@ -118,8 +118,13 @@ impl Canvas {
                             "for (int o=0; o<{};o++) {{\n",
                             (*y + *h - chunk_index as u16 * HOR_LEN as u16).min(40)
                         );
+                        let memset = if is_color_same_bytes(*color) {
+                            "memset"
+                        } else {
+                            "memset_u16"
+                        };
                         chunks[chunk_index] +=
-                            &format!("memset_u16(&disp_buf[o*480*2+{x}*2],0x{color:04x},{w}*2);\n");
+                            &format!("{memset}(&disp_buf[o*480*2+{x}*2],0x{color:04x},{w}*2);\n");
                         chunks[chunk_index] += "}\n";
                     }
                 }
@@ -128,7 +133,9 @@ impl Canvas {
         }
         for (i, chunk) in chunks.into_iter().enumerate() {
             new += &format!("// chunk {i}\n");
+            new += &format!("if (i == {i}) {{\n");
             new += &chunk;
+            new += &format!("}}\n");
         }
         new
     }
