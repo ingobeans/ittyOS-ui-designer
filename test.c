@@ -44,18 +44,44 @@ void testDrawCallback(int i) {
 for (int o=0; o<40;o++) {
 memset(&disp_buf[o*480*2],0x0000,480*2);
 }
+if (i >= 0 && i <= 4) {
+for (int o = 0; o<40; o++) {
+int currentY = i*HOR_LEN+O;
+                    if (currentY >= 0) {
+                        res = f_lseek(&img0, (currentY-0)*width*2);
+                        if (res != FR_OK) {
+                            print("f_seek failed with code: %d
+", res);
+                        }
+                        res = f_read(&img0,
+                                    &disp_buf[(currentY-0)*480*2+0*2],
+                                    250*2, 0);
+                        if (res != FR_OK) {
+                            print("f_read failed with code: %d
+", res);
+                        }
+                    }}
+}
+if (i >= 0 && i <= 1) {
+writeStringToBuffer(0, 30-o*HOR_LEN, "wahoo", Font_16x26, 0xffff, disp_buf, 480, HOR_LEN);
+}
 if (i >= 0 && i <= 7) {
 for (int o = 0; o<40; o++) {
 memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
 memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
 }
 }
-if (i >= 0 && i <= 1) {
-writeStringToBuffer(0, 30-o*HOR_LEN, "wahoo", Font_16x26, 0xffff, disp_buf, 480, HOR_LEN);
-}
 }
 
 void testDraw() {
+  
+FIL img0;
+FRESULT res = f_open(&img0, "images/cat.ibi", FA_READ);
+if (res != FR_OK) {
+print("f_open failed with code: %d
+", res);
+return;
+}
   for (int i = 0; i < 320/HOR_LEN; i++) {
     testDrawCallback(i);
   }

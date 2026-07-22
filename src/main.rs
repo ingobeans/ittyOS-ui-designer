@@ -123,6 +123,8 @@ impl Canvas {
     }
     fn generate_code(&self) -> String {
         let mut new = String::new();
+        let mut setup = String::new();
+        let mut imgs = 0;
         new += &format!("void {}DrawCallback(int i) {{\n", self.name);
         let mut multi_chunk_code: HashMap<Bounds, Chunk> = HashMap::new();
 
@@ -156,6 +158,47 @@ impl Canvas {
 
         for item in &self.data.items {
             match item {
+                UiItem::Img(x, y, path) => {
+                    let index = imgs;
+                    imgs += 1;
+                    setup += &format!(
+                        "
+FIL img{index};
+FRESULT res = f_open(&img{index}, {path:?}, FA_READ);
+if (res != FR_OK) {{
+print(\"f_open failed with code: %d\r\n\", res);
+return;
+}}"
+                    );
+                    // get image referenced.
+                    let img = imgtoibi::ibi_to_rgb(
+                        &std::fs::read(PathBuf::from("filesystem").join(path)).unwrap(),
+                    );
+                    let height = img.height();
+                    let width = img.width();
+
+                    let c = get_chunks_of_rect(*y, height as _);
+                    let bounds = Bounds {
+                        start: c[0] as _,
+                        end: c[c.len() - 1] as _,
+                    };
+                    let text = format!(
+                        "int currentY = i*HOR_LEN+O;
+                    if (currentY >= {y}) {{
+                        res = f_lseek(&img{index}, (currentY-{y})*width*2);
+                        if (res != FR_OK) {{
+                            print(\"f_seek failed with code: %d\r\n\", res);
+                        }}
+                        res = f_read(&img{index},
+                                    &disp_buf[(currentY-{y})*480*2+{x}*2],
+                                    {width}*2, 0);
+                        if (res != FR_OK) {{
+                            print(\"f_read failed with code: %d\r\n\", res);
+                        }}
+                    }}"
+                    );
+                    insert_chunk_code(&mut multi_chunk_code, bounds, &text, true);
+                }
                 UiItem::Text(x, y, text, font_size, color) => {
                     let size = font_size.get_size();
                     let mut c = Vec::new();
@@ -254,6 +297,7 @@ impl Canvas {
         new += &format!(
             "
 void {}Draw() {{
+  {setup}
   for (int i = 0; i < 320/HOR_LEN; i++) {{
     {}DrawCallback(i);
   }}
