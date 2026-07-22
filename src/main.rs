@@ -124,6 +124,8 @@ impl Canvas {
     fn generate_code(&self) -> String {
         let mut new = String::new();
         let mut setup = String::new();
+        let mut cleanup = String::new();
+        let mut global = String::new();
         let mut imgs = 0;
         new += &format!("void {}DrawCallback(int i) {{\n", self.name);
         let mut multi_chunk_code: HashMap<Bounds, Chunk> = HashMap::new();
@@ -155,20 +157,29 @@ impl Canvas {
                 multi_chunk_code.insert(b, chunk);
             }
         }
+        let name = &self.name;
 
         for item in &self.data.items {
             match item {
                 UiItem::Img(x, y, path) => {
                     let index = imgs;
                     imgs += 1;
+                    global += &format!("FIL {name}Img{index};\n");
                     setup += &format!(
                         "
-FIL img{index};
-FRESULT res = f_open(&img{index}, {path:?}, FA_READ);
+FRESULT res = f_open(&{name}Img{index}, {path:?}, FA_READ);
 if (res != FR_OK) {{
 print(\"f_open failed with code: %d\r\n\", res);
 return;
 }}"
+                    );
+                    cleanup += &format!(
+                        "
+res = f_close(&{name}Img{index});
+if (res != FR_OK) {{
+print(\"f_close failed with code: %d\r\n\", res);
+return res;
+ }}"
                     );
                     // get image referenced.
                     let img = imgtoibi::ibi_to_rgb(
@@ -185,15 +196,15 @@ return;
                     let text = format!(
                         "int currentY = i*HOR_LEN+O;
                     if (currentY >= {y}) {{
-                        res = f_lseek(&img{index}, (currentY-{y})*width*2);
+                        res = f_lseek(&{name}Img{index}, (currentY-{y})*width*2);
                         if (res != FR_OK) {{
-                            print(\"f_seek failed with code: %d\r\n\", res);
+                            print(\"f_seek failed with code: %d\\r\\n\", res);
                         }}
-                        res = f_read(&img{index},
+                        res = f_read(&{name}Img{index},
                                     &disp_buf[(currentY-{y})*480*2+{x}*2],
                                     {width}*2, 0);
                         if (res != FR_OK) {{
-                            print(\"f_read failed with code: %d\r\n\", res);
+                            print(\"f_read failed with code: %d\\r\\n\", res);
                         }}
                     }}"
                     );
@@ -301,10 +312,11 @@ void {}Draw() {{
   for (int i = 0; i < 320/HOR_LEN; i++) {{
     {}DrawCallback(i);
   }}
+  {cleanup}
 }}\n",
             self.name, self.name
         );
-        new
+        global + &new
     }
     fn write_to_file(&self) {
         let mut new = String::new();
