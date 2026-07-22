@@ -84,9 +84,10 @@ struct Canvas {
     parent_path: PathBuf,
 }
 impl Canvas {
-    /*fn from_items(items: Vec<UiItem>) -> Self {
-        Self::from_data(CanvasData { items })
-    }*/
+    #[allow(unused)]
+    fn from_items(items: Vec<UiItem>, path: &PathBuf) -> Self {
+        Self::new(CanvasData { items }, path)
+    }
     fn new(data: CanvasData, path: &PathBuf) -> Self {
         let render_target = render_target(480, 320);
         render_target.texture.set_filter(FilterMode::Nearest);
@@ -127,6 +128,16 @@ impl Canvas {
                             &format!("{memset}(&disp_buf[o*480*2+{x}*2],0x{color:04x},{w}*2);\n");
                         chunks[chunk_index] += "}\n";
                     }
+                }
+                UiItem::Base(color) => {
+                    let memset = if is_color_same_bytes(*color) {
+                        "memset"
+                    } else {
+                        "memset_u16"
+                    };
+                    new += "for (int o=0; o<40;o++) {\n";
+                    new += &format!("{memset}(&disp_buf[o*480*2],0x{color:04x},480*2);\n");
+                    new += "}\n";
                 }
                 _ => {}
             }
