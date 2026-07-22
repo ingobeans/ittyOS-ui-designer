@@ -45,6 +45,12 @@ void testDrawCallback(int i) {
 for (int o=0; o<40;o++) {
 memset(&disp_buf[o*480*2],0x0000,480*2);
 }
+if (i >= 0 && i <= 7) {
+for (int o = 0; o<40; o++) {
+memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
+memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
+}
+}
 if (i >= 0 && i <= 1) {
 writeStringToBuffer(0, 30-o*HOR_LEN, "wahoo", Font_16x26, 0xffff, disp_buf, 480, HOR_LEN);
 }
@@ -64,12 +70,11 @@ int currentY = i*HOR_LEN+O;
                         }
                     }}
 }
-if (i >= 0 && i <= 7) {
-for (int o = 0; o<40; o++) {
-memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
-memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
-}
-}
+initSPI(SD_LCD_SPEED);
+
+  ST7789_Select();
+  ST7789_WriteData(FILE_STREAM_BUF, streamBytesAmt);
+  ST7789_UnSelect();
 }
 
 void testDraw() {
@@ -79,7 +84,8 @@ if (res != FR_OK) {
 print("f_open failed with code: %d
 ", res);
 return;
-}
+}initSPI(SD_SPI_SPEED);
+
   for (int i = 0; i < 320/HOR_LEN; i++) {
     testDrawCallback(i);
   }

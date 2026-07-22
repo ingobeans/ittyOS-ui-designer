@@ -294,6 +294,9 @@ return res;
                 _ => {}
             }
         }
+        if imgs > 0 {
+            setup += "initSPI(SD_SPI_SPEED);\n";
+        }
         for (bounds, chunk) in multi_chunk_code.into_iter() {
             new += &format!("if (i >= {} && i <= {}) {{\n", bounds.start, bounds.end);
             new += &chunk.base;
@@ -304,6 +307,14 @@ return res;
             }
             new += &format!("}}\n");
         }
+
+        if imgs > 0 {
+            new += "initSPI(SD_LCD_SPEED);\n";
+        }
+        new += "
+  ST7789_Select();
+  ST7789_WriteData(FILE_STREAM_BUF, streamBytesAmt);
+  ST7789_UnSelect();\n";
         new += "}\n";
         new += &format!(
             "
