@@ -56,7 +56,7 @@ writeStringToBuffer(0, 30-o*HOR_LEN, "wahoo", Font_16x26, 0xffff, disp_buf, 480,
 }
 
 void testDraw() {
-    for (int i = 0; i < 320/HOR_LEN; i++) {
-        testDrawCallback(i);
-    }
+  for (int i = 0; i < 320/HOR_LEN; i++) {
+    testDrawCallback(i);
+  }
 }

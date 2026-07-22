@@ -254,9 +254,9 @@ impl Canvas {
         new += &format!(
             "
 void {}Draw() {{
-    for (int i = 0; i < 320/HOR_LEN; i++) {{
-        {}DrawCallback(i);
-    }}
+  for (int i = 0; i < 320/HOR_LEN; i++) {{
+    {}DrawCallback(i);
+  }}
 }}\n",
             self.name, self.name
         );
