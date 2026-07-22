@@ -44,63 +44,14 @@ void testDrawCallback(int i) {
 for (int o=0; o<40;o++) {
 memset(&disp_buf[o*480*2],0x0000,480*2);
 }
-// chunk 0
-if (i == 0) {
-writeStringToBuffer(0, 30, "wahoo", Font_16x26, 0xffff, disp_buf, 480, HOR_LEN);
+if (i >= 0 && i <= 7) {
 for (int o = 0; o<40; o++) {
 memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
 memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
 }
 }
-// chunk 1
-if (i == 1) {
-writeStringToBuffer(0, -10, "wahoo", Font_16x26, 0xffff, disp_buf, 480, HOR_LEN);
-for (int o = 0; o<40; o++) {
-memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
-memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
-}
-}
-// chunk 2
-if (i == 2) {
-for (int o = 0; o<40; o++) {
-memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
-memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
-}
-}
-// chunk 3
-if (i == 3) {
-for (int o = 0; o<40; o++) {
-memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
-memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
-}
-}
-// chunk 4
-if (i == 4) {
-for (int o = 0; o<40; o++) {
-memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
-memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
-}
-}
-// chunk 5
-if (i == 5) {
-for (int o = 0; o<40; o++) {
-memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
-memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
-}
-}
-// chunk 6
-if (i == 6) {
-for (int o = 0; o<40; o++) {
-memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
-memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
-}
-}
-// chunk 7
-if (i == 7) {
-for (int o = 0; o<40; o++) {
-memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
-memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
-}
+if (i >= 0 && i <= 1) {
+writeStringToBuffer(0, 30-o*HOR_LEN, "wahoo", Font_16x26, 0xffff, disp_buf, 480, HOR_LEN);
 }
 }
 

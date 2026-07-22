@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     path::{Path, PathBuf},
     sync::mpsc,
 };
@@ -77,6 +78,12 @@ fn get_chunks_of_rect(y: u16, height: u16) -> Vec<usize> {
     c
 }
 
+#[derive(Hash, PartialEq, Eq)]
+struct Bounds {
+    start: u16,
+    end: u16,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 struct CanvasData {
     items: Vec<UiItem>,
@@ -117,10 +124,35 @@ impl Canvas {
     fn generate_code(&self) -> String {
         let mut new = String::new();
         new += &format!("void {}DrawCallback(int i) {{\n", self.name);
-        let mut chunks: [Chunk; CHUNKS_AMT] = std::array::from_fn(|_| Chunk {
-            base: String::new(),
-            per_pixel: String::new(),
-        });
+        let mut multi_chunk_code: HashMap<Bounds, Chunk> = HashMap::new();
+
+        fn insert_chunk_code(
+            multi_chunk_code: &mut HashMap<Bounds, Chunk>,
+            b: Bounds,
+            value: &str,
+            pixel: bool,
+        ) {
+            if multi_chunk_code.contains_key(&b) {
+                if pixel {
+                    multi_chunk_code.get_mut(&b).unwrap().per_pixel += &value;
+                } else {
+                    multi_chunk_code.get_mut(&b).unwrap().base += &value;
+                }
+            } else {
+                let chunk = if pixel {
+                    Chunk {
+                        base: String::new(),
+                        per_pixel: value.to_string(),
+                    }
+                } else {
+                    Chunk {
+                        base: value.to_string(),
+                        per_pixel: String::new(),
+                    }
+                };
+                multi_chunk_code.insert(b, chunk);
+            }
+        }
 
         for item in &self.data.items {
             match item {
@@ -137,35 +169,63 @@ impl Canvas {
                         }
                     }
 
-                    for chunk_index in c {
-                        let offset: i16 = *y as i16 - (chunk_index * HOR_LEN) as i16;
-                        chunks[chunk_index].base += &format!(
-                            "writeStringToBuffer({x}, {offset}, {text:?}, {font_size:?}, 0x{color:04x}, disp_buf, 480, HOR_LEN);\n"
-                        );
-                    }
+                    insert_chunk_code(
+                        &mut multi_chunk_code,
+                        Bounds {
+                            start: c[0] as _,
+                            end: c[c.len() - 1] as _,
+                        },
+                        &format!(
+                            "writeStringToBuffer({x}, {y}-o*HOR_LEN, {text:?}, {font_size:?}, 0x{color:04x}, disp_buf, 480, HOR_LEN);\n"
+                        ),
+                        false,
+                    );
                 }
                 UiItem::Rect(x, y, w, h, color) => {
                     let c = get_chunks_of_rect(*y, *h);
-                    for chunk_index in c {
+                    let mut bounds = Bounds {
+                        start: c[0] as _,
+                        end: c[c.len() - 1] as _,
+                    };
+                    fn gen_code_for_chunk(
+                        chunk_index: usize,
+                        x: &u16,
+                        y: &u16,
+                        w: &u16,
+                        h: &u16,
+                        color: &Color16,
+                    ) -> String {
+                        let mut new = String::new();
                         let last = *y + *h - chunk_index as u16 * HOR_LEN as u16;
                         let is_last = last < 40;
                         let last = last.min(40);
                         if is_last {
-                            chunks[chunk_index].per_pixel += &format!("if (o<{}) {{\n", last);
+                            new += &format!("if (o<{}) {{\n", last);
                         }
                         let memset = if is_color_same_bytes(*color) {
                             "memset"
                         } else {
                             "memset_u16"
                         };
-                        chunks[chunk_index].per_pixel +=
+                        new +=
                             &format!("{memset}(&disp_buf[o*480*2+{x}*2],0x{color:04x},{w}*2);\n");
                         if is_last {
-                            chunks[chunk_index].per_pixel +=
-                                &format!("for (int o=0; o<{};o++) {{\n", last);
-                            chunks[chunk_index].per_pixel += "}\n";
+                            new += &format!("for (int o=0; o<{};o++) {{\n", last);
+                            new += "}\n";
                         }
+                        new
                     }
+                    let first_code = gen_code_for_chunk(bounds.start as _, x, y, w, h, color);
+                    let last_code = gen_code_for_chunk(bounds.end as _, x, y, w, h, color);
+                    if first_code != last_code {
+                        let b = Bounds {
+                            start: bounds.end,
+                            end: bounds.end,
+                        };
+                        bounds.end -= 1;
+                        insert_chunk_code(&mut multi_chunk_code, b, &last_code, true);
+                    }
+                    insert_chunk_code(&mut multi_chunk_code, bounds, &first_code, true);
                 }
                 UiItem::Base(color) => {
                     let memset = if is_color_same_bytes(*color) {
@@ -180,9 +240,8 @@ impl Canvas {
                 _ => {}
             }
         }
-        for (i, chunk) in chunks.into_iter().enumerate() {
-            new += &format!("// chunk {i}\n");
-            new += &format!("if (i == {i}) {{\n");
+        for (bounds, chunk) in multi_chunk_code.into_iter() {
+            new += &format!("if (i >= {} && i <= {}) {{\n", bounds.start, bounds.end);
             new += &chunk.base;
             if !chunk.per_pixel.is_empty() {
                 new += "for (int o = 0; o<40; o++) {\n";
