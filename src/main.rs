@@ -116,6 +116,7 @@ impl Canvas {
     }
     fn generate_code(&self) -> String {
         let mut new = String::new();
+        new += &format!("void {}DrawCallback(int i) {{\n", self.name);
         let mut chunks: [Chunk; CHUNKS_AMT] = std::array::from_fn(|_| Chunk {
             base: String::new(),
             per_pixel: String::new(),
@@ -190,6 +191,7 @@ impl Canvas {
             }
             new += &format!("}}\n");
         }
+        new += "}\n";
         new
     }
     fn write_to_file(&self) {

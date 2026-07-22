@@ -40,6 +40,7 @@
 }
 */
 
+void testDrawCallback(int i) {
 for (int o=0; o<40;o++) {
 memset(&disp_buf[o*480*2],0x0000,480*2);
 }
@@ -99,5 +100,6 @@ if (i == 7) {
 for (int o = 0; o<40; o++) {
 memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
 memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
+}
 }
 }
