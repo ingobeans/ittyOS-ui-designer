@@ -320,10 +320,15 @@ async fn main() {
         return;
     };
     let path = PathBuf::from(&path);
-    let mut canvas = Canvas::new(
-        parse_canvas_data(&std::fs::read_to_string(&path).unwrap()).unwrap(),
-        &path,
-    );
+    let mut canvas = if !path.exists() {
+        Canvas::from_items(vec![], &path)
+    } else {
+        Canvas::new(
+            parse_canvas_data(&std::fs::read_to_string(&path).unwrap()).unwrap(),
+            &path,
+        )
+    };
+
     canvas.write_to_file();
 
     let (tx, rx) = mpsc::channel::<notify::Result<Event>>();
