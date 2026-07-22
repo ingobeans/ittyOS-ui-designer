@@ -31,6 +31,11 @@ impl FontSize {
             FontSize::Font_16x26 => 26.0,
         }
     }
+    fn get_size(&self) -> (u16, u16) {
+        let t = format!("{self:?}");
+        let t = t.split_once("_").unwrap().1.split_once("x").unwrap();
+        (t.0.parse().unwrap(), t.1.parse().unwrap())
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -118,6 +123,26 @@ impl Canvas {
 
         for item in &self.data.items {
             match item {
+                UiItem::Text(x, y, text, font_size, color) => {
+                    let size = font_size.get_size();
+                    let mut c = Vec::new();
+                    for co in 0..CHUNKS_AMT {
+                        let chunk_y = co * HOR_LEN;
+                        if (chunk_y + 40 >= *y as usize
+                            && chunk_y + 40 <= *y as usize + size.1 as usize)
+                            || (chunk_y >= *y as usize && chunk_y <= *y as usize + size.1 as usize)
+                        {
+                            c.push(co);
+                        }
+                    }
+
+                    for chunk_index in c {
+                        let offset: i16 = *y as i16 - (chunk_index * HOR_LEN) as i16;
+                        chunks[chunk_index].base += &format!(
+                            "writeStringToBuffer({x}, {offset}, {text:?}, {font_size:?}, 0x{color:04x}, disp_buf, 480, HOR_LEN);\n"
+                        );
+                    }
+                }
                 UiItem::Rect(x, y, w, h, color) => {
                     let c = get_chunks_of_rect(*y, *h);
                     for chunk_index in c {

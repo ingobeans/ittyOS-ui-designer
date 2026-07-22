@@ -32,7 +32,7 @@
 {
   "Text": [
     0,
-    0,
+    30,
     "wahoo",
     "Font_16x26",
     65535
@@ -45,6 +45,7 @@ memset(&disp_buf[o*480*2],0x0000,480*2);
 }
 // chunk 0
 if (i == 0) {
+writeStringToBuffer(0, 30, "wahoo", Font_16x26, 0xffff, disp_buf, 480, HOR_LEN);
 for (int o = 0; o<40; o++) {
 memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
 memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
@@ -52,6 +53,7 @@ memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
 }
 // chunk 1
 if (i == 1) {
+writeStringToBuffer(0, -10, "wahoo", Font_16x26, 0xffff, disp_buf, 480, HOR_LEN);
 for (int o = 0; o<40; o++) {
 memset_u16(&disp_buf[o*480*2+0*2],0x6529,52*2);
 memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
