@@ -103,3 +103,9 @@ memset_u16(&disp_buf[o*480*2+428*2],0x6529,52*2);
 }
 }
 }
+
+void testDraw() {
+    for (int i = 0; i < 320/HOR_LEN; i++) {
+        testDrawCallback(i);
+    }
+}
