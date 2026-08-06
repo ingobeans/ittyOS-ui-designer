@@ -19,3 +19,15 @@ currently, the program displays a representation of the UI, and live updates the
 
 * fix ordering
 * fix buggy live update
+
+# example project:
+
+this repo contains `test.c`, a simple test project. it looks like this in the editor:
+
+<img src="readme/ex_editor.png" width=220>
+
+which compiles to code that renders this:
+
+<img src="readme/ex_irl.png" width=220>
+
+(generated code was modified slightly for it to properly compile, and to add the program that actually shows the UI)
