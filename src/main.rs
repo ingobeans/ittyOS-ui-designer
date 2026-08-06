@@ -230,7 +230,7 @@ if (currentY >= {y}) {{
                             end: c[c.len() - 1] as _,
                         },
                         &format!(
-                            "writeStringToBuffer({x}, {y}-o*HOR_LEN, {text:?}, {font_size:?}, 0x{color:04x}, disp_buf, 480, HOR_LEN);\n"
+                            "writeStringToBuffer({x}, {y}-{i}*HOR_LEN, {text:?}, {font_size:?}, 0x{color:04x}, disp_buf, 480, HOR_LEN);\n"
                         ),
                         false,
                     );
