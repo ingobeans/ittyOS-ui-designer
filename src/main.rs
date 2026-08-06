@@ -196,7 +196,7 @@ return res;
                     let text = format!(
                         "int currentY = i*HOR_LEN+O;
 if (currentY >= {y}) {{
-  res = f_lseek(&{name}Img{index}, (currentY-{y})*width*2);
+  res = f_lseek(&{name}Img{index}, (currentY-{y})*{width}*2);
   if (res != FR_OK) {{
     print(\"f_seek failed with code: %d\\r\\n\", res);
   }}
